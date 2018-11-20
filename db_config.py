@@ -1,16 +1,16 @@
+import os
+
 import psycopg2
 
-db_url = "dbname='sendit_db' user='postgres' password='postgres' host='localhost' port='5432'"
+from instance.config import app_config
+
+env = os.getenv('FLASK_ENV')
+db_url = app_config[env].DATABASE_URL
 
 
 def connection(db_url):
-    try:
-        conn = psycopg2.connect(db_url)
-    except (Exception, psycopg2.Error) as error:
-        return "We could not create a connection to the database", error
-    else:
-        print("Connection established to database")
-        return conn
+    conn = psycopg2.connect(db_url)
+    return conn
 
 
 def init_db():
@@ -23,17 +23,17 @@ def tables():
         user_id serial PRIMARY KEY,
         first_name varchar (25) NOT NULL,
         last_name varchar (25) NOT NULL,
-        email varchar(144) NOT NULL unique,
+        email varchar(50) NOT NULL unique,
         password varchar (64) NOT NULL,
-        username varchar (32) unique,
-        phone integer unique
+        phone bigint unique,
+        is_admin boolean DEFAULT 'f'
         )"""
 
     parcels_table = """
         CREATE TABLE IF NOT EXISTS parcels(
         parcel_id serial PRIMARY KEY,
         parcel_name varchar (25) NOT NULL,
-        sender_id integer REFERENCES users (user_id),
+        sender_email varchar (50) REFERENCES users (email),
         recipient_name varchar (40) NOT NULL,
         pickup_location varchar (40) NOT NULL,
         current_location varchar (40),
@@ -48,13 +48,22 @@ def tables():
 
 
 def create_tables():
-    conn = connection(db_url)
+    conn = init_db()
     cursor = conn.cursor()
     queries = tables()
     for query in queries:
         cursor.execute(query)
+        print("Creating tables")
     conn.commit()
 
 
 def destroy_tables():
-    pass
+    conn = init_db()
+    cursor = conn.cursor()
+    drop_users = """DROP TABLE IF EXISTS users CASCADE"""
+    drop_parcels = """DROP TABLE IF EXISTS parcels CASCADE"""
+
+    queries = [drop_users, drop_parcels]
+    for query in queries:
+        cursor.execute(query)
+    conn.commit()
