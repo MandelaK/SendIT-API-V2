@@ -8,11 +8,14 @@ install:
   - pip install coveralls
   - pip install pytest-cov
   
+services:
+  -postgresql
+  
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
 
 script:
-  - pytest --cov=app/
+  - pytest --coverage=app/
 
 after_success:
 - coveralls
