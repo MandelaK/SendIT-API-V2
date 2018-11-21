@@ -7,9 +7,11 @@ install:
   - pip install -r requirements.txt
   - pip install coveralls
   - pip install pytest-cov
-  
+
 before_script:
   - psql -c 'create database travis_ci_test;' -U postgres
+  - export DATABASE_TEST_URL="dbname='travis_ci_test' user='postgres' password='' host='localhost' port='5432'"
+
 
 script:
   - pytest --cov=app/
