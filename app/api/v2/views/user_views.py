@@ -1,3 +1,5 @@
+import datetime
+
 from flask_restful import Resource
 from flask_restful.reqparse import RequestParser as R
 from werkzeug.security import generate_password_hash
@@ -68,3 +70,47 @@ class SignupView(Resource, Users):
             return {"Error": "User already exists"}, 409
         elif saving == 400:
             return {"Error": "Could not create account. Please try again"}, 400
+
+
+class LoginView(Resource, Users):
+    """This class contains methods that handle requests for user login"""
+
+    def __init__(self):
+        self.user = Users()
+        self.inspect_user_login = R()
+        self.inspect_user_login.add_argument(
+            "email", help="Please enter email adress", required=True)
+        self.inspect_user_login.add_argument(
+            "password", help="Please enter password", required=True)
+
+    def post(self):
+        """When the user submits login information, it is processed by this veiw before being
+        submitted to the models"""
+        login_info = self.inspect_user_login.parse_args()
+        email = login_info.get("email")
+        password = login_info.get("password")
+
+        if not validate_email(email):
+            return {"Error": "Incorrect email address"}, 422
+        if not helpers.validate_string(password):
+            return {"Error": "Incorrect password"}, 401
+
+        user_info = self.user.log_in(email, password)
+        if user_info == 404:
+            return {"Error": "User does not exist"}, 404
+        elif user_info == 401:
+            return {"Error": "Incorrect credentials. Please try again"}, 401
+        else:
+            user_id = user_info[0]
+            email = user_info[3]
+            is_admin = user_info[6]
+            user_dict = dict(
+                user_id=user_id,
+                email=email,
+                is_admin=is_admin)
+
+            token_expires = datetime.timedelta(minutes=600)
+            token = create_access_token(
+                identity=user_dict, expires_delta=token_expires)
+            return {"Success": "You are logged in as {}.".format(email),
+                    "token": token}, 201

@@ -85,3 +85,19 @@ class Users():
         except (Exception, psycopg2.Error) as error:
             print("Something went wrong: ", error)
             return error
+
+    def log_in(self, email, password):
+        """This is where user information is submitted to the database so we check if it's valid
+        and the user can then be logged in"""
+
+        user = self.get_user_by_email(email)
+        if not user:
+            print("Could not find information on user {}.".format(email))
+            return 404
+        else:
+            print("Found information on user {}.".format(email))
+            corr_pwd = check_password_hash(user[4], password)
+            if not corr_pwd:
+                return 401
+            else:
+                return user
