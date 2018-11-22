@@ -3,21 +3,14 @@ import json
 from app.tests import BaseTestClass
 
 
-class TestUserPassing(BaseTestClass):
+class TestUserModels(BaseTestClass):
     """These tests below test if the user can successfully sign """
 
     def test_user_sign_up(self):
         """Test if user can sign up if they provide valid information"""
 
-        generic_user = {"first_name": "Test First",
-                        "last_name": "Test Second",
-                        "email": "testing@gmail.com",
-                        "password": "testing",
-                        "confirm_password": "testing",
-                        "phone": "09323834134"}
-
         res = self.client.post(
-            "/api/v2/auth/signup", data=json.dumps(generic_user), content_type="application/json")
+            "/api/v2/auth/signup", data=json.dumps(self.generic_user), content_type="application/json")
         result = json.loads(res.data)
         self.assertEqual(
             result["Success"], "Succesfully created account for testing@gmail.com")
@@ -27,17 +20,10 @@ class TestUserPassing(BaseTestClass):
         """If the user attempts to sign up and they are already in the database,
         they shouldn't be allowed to"""
 
-        generic_user = {"first_name": "Test First",
-                        "last_name": "Test Second",
-                        "email": "testing@gmail.com",
-                        "password": "testing",
-                        "confirm_password": "testing",
-                        "phone": "09323834134"}
-
         self.client.post(
-            "api/v2/auth/signup", data=json.dumps(generic_user), content_type="application/json")
+            "api/v2/auth/signup", data=json.dumps(self.generic_user), content_type="application/json")
         res = self.client.post(
-            "api/v2/auth/signup", data=json.dumps(generic_user), content_type="application/json")
+            "api/v2/auth/signup", data=json.dumps(self.generic_user), content_type="application/json")
         result = json.loads(res.data)
         self.assertEqual(result["Error"], "User already exists")
         self.assertEqual(res.status_code, 409)
@@ -59,3 +45,52 @@ class TestUserPassing(BaseTestClass):
         res = self.client.post(
             "/api/v2/auth/login", data=json.dumps(details), content_type="application/json")
         self.assertEqual(res.status_code, 404)
+
+    def test_user_sign_in(self):
+        """User should be able to sign in"""
+
+        self.client.post("/api/v2/auth/signup", data=json.dumps(
+            self.generic_user), content_type="application/json")
+        res = self.client.post(
+            "/api/v2/auth/login", data=json.dumps(self.generic_user_details),
+            content_type="application/json")
+        result = json.loads(res.data)
+        self.assertEqual(result["Success"],
+                         "You are logged in as testing@gmail.com.")
+        self.assertEqual(res.status_code, 201)
+
+    def test_wrong_password_login(self):
+        """User should not be able to log in if they provide a wrong password"""
+
+        self.client.post("/api/v2/auth/signup", data=json.dumps(
+            self.generic_user), content_type="application/json")
+
+        wrong_info = {"email": "admin@admin.admin",
+                      "password": "obviouslyfake"}
+
+        res = self.client.post(
+            "/api/v2/auth/login", data=json.dumps(wrong_info), content_type="application/json")
+        result = json.loads(res.data)
+        self.assertEqual(
+            result["Error"], "Incorrect credentials. Please try again")
+        self.assertEqual(res.status_code, 401)
+
+    def test_nonexistent_user_login(self):
+        """Users who don't exist should not be able to log in"""
+
+        fake_user = {"email": "eat@me.com",
+                     "password": "lolzIKid"}
+
+        res = self.client.post(
+            "/api/v2/auth/login", data=json.dumps(fake_user), content_type="application/json")
+        result = json.loads(res.data)
+        self.assertEqual(result["Error"], "User does not exist")
+        self.assertEqual(res.status_code, 404)
+
+    def test_invalid_email_when_logging_in(self):
+        """Only users who provide valid email address should be able to log in"""
+        pass
+
+    def test_invalid_password(self):
+        """passwords should be at least 6 characters long and must contain strings"""
+        pass
