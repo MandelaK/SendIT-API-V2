@@ -1,0 +1,22 @@
+language: python
+
+python:
+  - "3.6"
+
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+  - pip install nose
+
+before_script:
+  - psql -c 'create database travis_ci_test;' -U postgres
+  - export DATABASE_TEST_URL="dbname='travis_ci_test' user='postgres' password='' host='localhost' port='5432'"
+  - export FLASK_ENV=testing
+
+
+script:
+  - nosetests --with-coverage --cover-package=app
+
+after_success:
+- coveralls
+
