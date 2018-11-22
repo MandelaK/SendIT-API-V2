@@ -41,8 +41,8 @@ POST /users/parcels			-		Create a delivery order
 
 **To install this repository**
 - clone it - $ git clone https://github.com/MandelaK/SendITAPI-V2
-- create a virtual environment 
-- do pip install -r requirements.txt in your virtual environment
+- create a virtual environment by doing python3 -m venv env and activating your environment with source /env/bin/activate (if you're in the same directory as your virtual environment
+- do pip install -r requirements.txt while in your active environment
 
 **To test on Postman:**
 - Open Postman and access the following endpoints:
