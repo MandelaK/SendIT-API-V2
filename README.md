@@ -1,4 +1,11 @@
 # SendITAPI-V2
+[![Maintainability](https://api.codeclimate.com/v1/badges/75b6c19f46773ff41381/maintainability)](https://codeclimate.com/github/MandelaK/SendIT-API-V2/maintainability)  
+
+[![codecov](https://codecov.io/gh/MandelaK/SendIT-API-V2/branch/develop/graph/badge.svg)](https://codecov.io/gh/MandelaK/SendIT-API-V2)
+[![Build Status](https://travis-ci.com/MandelaK/SendIT-API-V2.svg?branch=develop)](https://travis-ci.com/MandelaK/SendIT-API-V2)
+
+
+
  SendIT is an application that allows users to create parcel deliveries and send them out. With this version, we implement a persistent database to our SendIT API. The following features are implemented:
 	- Users can create parcel delivery orders
 	- Users should be able to change destination for orders in transit
