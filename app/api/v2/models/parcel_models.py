@@ -211,3 +211,35 @@ class Parcels():
         except (Exception, psycopg2.Error) as error:
             print("Could not change destinaion of parcel: ", error)
             return error
+
+    @jwt_required
+    def cancel_parcel(self, parcel_id):
+        """User can only cancel orders they create so long as they are not yet
+        'delivered'"""
+
+        user_data = get_jwt_identity()
+        get_parcel = self.get_parcel_by_id(parcel_id)
+
+        if get_parcel is False:
+            return 404
+        elif user_data["email"] != get_parcel[2]:
+            return 401
+        elif get_parcel[9] == "cancelled" or get_parcel[9] == "delivered":
+            return 400
+        else:
+            cancel_query = """UPDATE parcels
+            SET status = 'cancelled' WHERE parcel_id = {}""".format(parcel_id)
+
+        try:
+            cursor = self.db.cursor()
+            print("Successfully created cursor. Cancelling parcel number {} ...".format(
+                parcel_id))
+            cursor.execute(cancel_query)
+            self.db.commit()
+            count = cursor.rowcount
+            print("Successfully changed the status parcel {}. {} rows affected.".format(
+                parcel_id, count))
+            return 204
+        except (Exception, psycopg2.Error) as error:
+            print("Could not change the status of the parcel: ", error)
+            return error
