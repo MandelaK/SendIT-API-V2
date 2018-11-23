@@ -94,3 +94,20 @@ class ParcelDestination(Resource, Parcels):
             return {"Unauthorized": "You can only update destination of your own parcels"}, 401
         else:
             return {"Something went wrong": update_destination}
+
+
+class ParcelView(Resource, Parcels):
+    """This class has methods for returning all parcels stored in our database"""
+
+    def __init__(self):
+        self.parcel = Parcels()
+
+    def get(self):
+        """This method handles requests to get all parcels"""
+
+        parcels = self.parcel.get_all_parcels()
+
+        if parcels == 404:
+            return {"Error": "You have no parcels made"}, 404
+        else:
+            return {"Here are the parcels": parcels}, 200

@@ -119,3 +119,29 @@ class TestParcelView(BaseTestClass):
         self.assertEqual(
             result["Unauthorized"], "You can only update destination of your own parcels")
         self.assertEqual(res.status_code, 401)
+
+    def test_user_can_get_their_parcel(self):
+        """Users can only see parcels if they made one"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+        res = self.client.get("/api/v2/parcels", headers=self.headers)
+        self.assertEqual(res.status_code, 200)
+
+    def test_user_cannot_see_parcels_not_theirs(self):
+        """"""
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        self.client.post("/api/v2/auth/signup", data=json.dumps(self.generic_user),
+                         content_type="application/json")
+        log = self.client.post("/api/v2/auth/login", data=json.dumps(self.generic_user_details),
+                               content_type="application/json")
+        logs = json.loads(log.get_data(as_text=True))
+        log_token = logs["token"]
+        temp_headers = {"AUTHORIZATION": "Bearer " + log_token}
+
+        res = self.client.get("/api/v2/parcels", headers=temp_headers)
+        self.assertEqual(res.status_code, 404)
