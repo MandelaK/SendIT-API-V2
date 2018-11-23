@@ -146,3 +146,37 @@ class ParcelStatus(Resource, Parcels):
             return {"Success": "The status for parcel number {} was successfully changed".format(parcel_id)}, 200
         elif change_status == 404:
             return {"Error": "Parcel not found."}, 404
+
+
+class ParcelLocation(Resource, Parcels):
+    """When an admin wants to change the location of a parcel delivery, the
+    request is handled by the put method in this class"""
+
+    def __init__(self):
+        self.parcel = Parcels()
+        self.inspect_location = R()
+        self.inspect_location.add_argument(
+            "current_location", help="Please enter location", required=True)
+
+    @jwt_required
+    def put(self, parcel_id):
+
+        user_data = get_jwt_identity()
+        if user_data["is_admin"] is False:
+            return {"Forbidden": "Only admins can update the present location of a parcel."}, 403
+
+        location_updated = self.inspect_location.parse_args()
+        current_location = location_updated["current_location"]
+
+        if not helpers.validate_string(current_location):
+            return {"Error": "Please enter a valid location"}, 400
+
+        update_location = self.parcel.change_location(
+            parcel_id, current_location)
+
+        if update_location == 204:
+            return {"Success": "Successfully updated current location"}, 200
+        elif update_location == 404:
+            return {"Error": "Parcel not found"}, 404
+        elif update_location == 400:
+            return {"Error": "You can only change location of parcels in transit"}, 400

@@ -185,3 +185,29 @@ class Parcels():
         except (Exception, psycopg2.Error) as error:
             print("Could not change the status of the order: ", error)
             return error, 400
+
+    def change_location(self, parcel_id, current_location):
+        """This method handles requests to change the location of a delivery in transit"""
+
+        parcel = self.get_parcel_by_id(parcel_id)
+
+        if not parcel:
+            return 404
+        elif parcel[9] != "transit":
+            return 400
+        else:
+            update_location = """
+            UPDATE parcels SET current_location = '{}'
+            WHERE parcel_id = {}""".format(current_location, parcel_id)
+
+        try:
+            cursor = self.db.cursor()
+            print("Successfully created cursor. Updating current location for parcel \
+                number {} ...".format(parcel_id))
+            cursor.execute(update_location)
+            self.db.commit()
+            print("Location successfully changed")
+            return 204
+        except (Exception, psycopg2.Error) as error:
+            print("Could not change destinaion of parcel: ", error)
+            return error
