@@ -206,3 +206,84 @@ class TestParcelView(BaseTestClass):
         """Admin should not be able to change status of parcels that have been cancelled
         or delivered"""
         pass
+
+    def test_user_can_change_location(self):
+        """Users should not be able to change location of parcels"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        location = {"current_location": "invalid"}
+        res = self.client.put("/api/v2/parcels/1/presentLocation", data=json.dumps(
+            location), content_type="application/json", headers=self.headers)
+        result = json.loads(res.data)
+        self.assertEqual(result["Forbidden"],
+                         "Only admins can update the present location of a parcel.")
+        self.assertEqual(res.status_code, 403)
+
+    def test_admin_can_change_current_location(self):
+        """Admins should be able to update current location of parcels in transit"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        status = {"status": "transit"}
+        res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+            status), content_type="application/json", headers=self.admin_header)
+        location = {"current_location": "Nairoberry"}
+        res = self.client.put("/api/v2/parcels/1/presentLocation", data=json.dumps(
+            location), content_type="application/json", headers=self.admin_header)
+        result = json.loads(res.data)
+
+        self.assertEqual(result["Success"],
+                         "Successfully updated current location")
+        self.assertEqual(res.status_code, 200)
+
+    def test_admin_can_change_location_of_nonexistent_parcel(self):
+        """Admin should not be able to change location of parcels that don't exist"""
+
+        location = {"current_location": "Nairoberry"}
+        res = self.client.put("/api/v2/parcels/1/presentLocation", data=json.dumps(
+            location), content_type="application/json", headers=self.admin_header)
+        result = json.loads(res.data)
+
+        self.assertEqual(result["Error"],
+                         "Parcel not found")
+        self.assertEqual(res.status_code, 404)
+
+    def test_admin_can_change_location_of_pending_parcels(self):
+        """Admins should not be able to change current location of parcels not in transit"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        location = {"current_location": "Nairoberry"}
+        res = self.client.put("/api/v2/parcels/1/presentLocation", data=json.dumps(
+            location), content_type="application/json", headers=self.admin_header)
+        result = json.loads(res.data)
+
+        self.assertEqual(result["Error"],
+                         "You can only change location of parcels in transit")
+        self.assertEqual(res.status_code, 400)
+
+    def test_admin_can_add_invalid_current_location(self):
+        """Admins should not be able to add current locations that are not valid"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        status = {"status": "transit"}
+        res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+            status), content_type="application/json", headers=self.admin_header)
+        location = {"current_location": "      "}
+        res = self.client.put("/api/v2/parcels/1/presentLocation", data=json.dumps(
+            location), content_type="application/json", headers=self.admin_header)
+        result = json.loads(res.data)
+
+        self.assertEqual(result["Error"],
+                         "Please enter a valid location")
+        self.assertEqual(res.status_code, 400)
