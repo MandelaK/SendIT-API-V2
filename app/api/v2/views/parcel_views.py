@@ -56,3 +56,41 @@ class ParcelCreate(Resource, Parcels):
             return {"Success": "Your parcel order has been saved"}, 201
         else:
             return {"Something went wrong": save_parcel}, 400
+
+
+class ParcelDestination(Resource, Parcels):
+    """When a user chooses to change the destination, the put method defined
+    here will handle the request"""
+
+    def __init__(self):
+        self.parcel = Parcels()
+        self.inspect_destination = R()
+        self.inspect_destination.add_argument(
+            "destination", help="Please enter destination", required=True)
+
+    @jwt_required
+    def put(self, parcel_id):
+        """This is the method that handles requests to change
+        parcel destination."""
+        user_data = get_jwt_identity()
+        if user_data["is_admin"] is True:
+            return {"Forbidden": "Admins cannot change destinaion of parcels"}, 403
+
+        destination_requested = self.inspect_destination.parse_args()
+        destination = destination_requested["destination"]
+
+        if not helpers.validate_string(destination):
+            return {"Error": "Please enter valid destination"}, 400
+
+        update_destination = self.parcel.change_destination(
+            parcel_id, destination)
+        if update_destination == 204:
+            return {"Success": "Destination for parcel {} succesfully changed".format(parcel_id)}, 200
+        elif update_destination == 404:
+            return {"Error": "Parcel not found"}, 404
+        elif update_destination == 400:
+            return {"Error": "You can only change destination of parcels that are pending"}, 400
+        elif update_destination == 401:
+            return {"Unauthorized": "You can only update destination of your own parcels"}, 401
+        else:
+            return {"Something went wrong": update_destination}
