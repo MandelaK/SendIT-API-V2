@@ -106,3 +106,56 @@ class Parcels():
         except (Exception, psycopg2.Error) as error:
             print ("Could not get parcel {}... ".format(parcel_id), error)
             return error
+
+    @jwt_required
+    def get_all_parcels(self):
+        """This will be called if the admin wishes to see all parcels
+        in the database"""
+
+        user_data = get_jwt_identity()
+        if user_data["is_admin"] is True:
+            admin = True
+            admin_get_all = """
+                SELECT * FROM parcels
+                ORDER BY parcel_id"""
+        else:
+            admin = False
+            user_get_all = """
+            SELECT * FROM parcels
+            WHERE sender_email = '{}'
+            ORDER BY parcel_id
+            """.format(user_data["email"])
+
+        try:
+            cursor = self.db.cursor()
+            print("Successfully created cursor. Getting all parcels ...")
+
+            if admin is True:
+                cursor.execute(admin_get_all)
+            else:
+                cursor.execute(user_get_all)
+
+            data = cursor.fetchall()
+            if data == []:
+                return 404
+            res = []
+
+            for parcel, parcels in enumerate(data):
+                parcel_id, parcel_name, sender_email, recipient_name, destination, pickup_location, current_location, weight, price, status = parcels
+                structured_response = dict(
+                    parcel_id=parcel_id,
+                    parcel_name=parcel_name,
+                    sender_email=sender_email,
+                    recipient_name=recipient_name,
+                    destination=destination,
+                    pickup_location=pickup_location,
+                    current_location=current_location,
+                    weight=int(weight),
+                    price=int(price),
+                    status=status)
+                res.append(structured_response)
+            return res
+
+        except (Exception, psycopg2.Error) as error:
+            print("Could not get any parcels from database: ", error)
+            return error
