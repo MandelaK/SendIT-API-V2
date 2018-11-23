@@ -180,3 +180,29 @@ class ParcelLocation(Resource, Parcels):
             return {"Error": "Parcel not found"}, 404
         elif update_location == 400:
             return {"Error": "You can only change location of parcels in transit"}, 400
+
+
+class CancelParcel(Resource, Parcels):
+    """This class contains methods that will handel requests for cancelling any orders"""
+
+    def __init__(self):
+        self.parcel = Parcels()
+
+    @jwt_required
+    def put(self, parcel_id):
+        """This method will handle requests to cancel any parcel in transit"""
+
+        user_info = get_jwt_identity()
+        if user_info["is_admin"] is True:
+            return {"Forbidden": "Admins cannot cancel parcels"}, 403
+
+        send_request = self.parcel.cancel_parcel(parcel_id)
+
+        if send_request == 404:
+            return {"Error": "Parcel not found"}, 404
+        elif send_request == 204:
+            return {"Success": "Successfully cancelled your parcel"}, 200
+        elif send_request == 401:
+            return {"Error": "You can only cancel parcels you created"}, 401
+        elif send_request == 400:
+            return {"Error": "You can only cancel parcels in transit"}, 400

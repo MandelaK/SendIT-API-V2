@@ -287,3 +287,83 @@ class TestParcelView(BaseTestClass):
         self.assertEqual(result["Error"],
                          "Please enter a valid location")
         self.assertEqual(res.status_code, 400)
+
+    def test_admin_can_cancel_parcel(self):
+        """Admin should not be able to cancel parcels"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        res = self.client.put("/api/v2/parcels/1/cancel",
+                              headers=self.admin_header)
+        result = json.loads(res.data)
+
+        self.assertEqual(result["Forbidden"],
+                         "Admins cannot cancel parcels")
+        self.assertEqual(res.status_code, 403)
+
+    def test_user_can_cancel_pending_parcel(self):
+        """User should be able to cancel pending or parcels in transit"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        res = self.client.put("/api/v2/parcels/1/cancel",
+                              headers=self.headers)
+        result = json.loads(res.data)
+
+        self.assertEqual(result["Success"],
+                         "Successfully cancelled your parcel")
+        self.assertEqual(res.status_code, 200)
+
+    def test_user_can_cancel_cancelled_parcel(self):
+        """User should not be able to cancel cancelled or delivered parcels"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        self.client.put("/api/v2/parcels/1/cancel",
+                        headers=self.headers)
+        res = self.client.put("/api/v2/parcels/1/cancel",
+                              headers=self.headers)
+        result = json.loads(res.data)
+
+        self.assertEqual(result["Error"],
+                         "You can only cancel parcels in transit")
+        self.assertEqual(res.status_code, 400)
+
+    def test_user_can_cancel_nonexistent_parcels(self):
+        """User should not be able to cancel parcels that don't exist"""
+
+        res = self.client.put("/api/v2/parcels/1/cancel",
+                              headers=self.headers)
+        result = json.loads(res.data)
+
+        self.assertEqual(result["Error"],
+                         "Parcel not found")
+        self.assertEqual(res.status_code, 404)
+
+    def test_user_can_cancel_parcel_by_another_user(self):
+        """User should not be able to cancel parcels they did no create"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        self.client.post("/api/v2/auth/signup", data=json.dumps(self.generic_user),
+                         content_type="application/json")
+        log = self.client.post("/api/v2/auth/login", data=json.dumps(self.generic_user_details),
+                               content_type="application/json")
+        logs = json.loads(log.get_data(as_text=True))
+        log_token = logs["token"]
+        temp_headers = {"AUTHORIZATION": "Bearer " + log_token}
+
+        res = self.client.put("/api/v2/parcels/1/cancel",
+                              headers=temp_headers)
+        result = json.loads(res.data)
+        self.assertEqual(result["Error"],
+                         "You can only cancel parcels you created")
+        self.assertEqual(res.status_code, 401)
