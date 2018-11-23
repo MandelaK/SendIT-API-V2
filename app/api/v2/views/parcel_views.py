@@ -111,3 +111,38 @@ class ParcelView(Resource, Parcels):
             return {"Error": "You have no parcels made"}, 404
         else:
             return {"Here are the parcels": parcels}, 200
+
+
+class ParcelStatus(Resource, Parcels):
+    """This class contains methods that handle requests to change the status of a
+    parcel delivery order"""
+
+    def __init__(self):
+        self.parcel = Parcels()
+        self.inspect_status = R()
+        self.inspect_status.add_argument(
+            "status", help="Please enter the status", required=True)
+
+    @jwt_required
+    def put(self, parcel_id):
+        """This method handles requests to change the status
+        of a parcel delivery order"""
+
+        user_info = get_jwt_identity()
+        if user_info["is_admin"] is False:
+            return {"Forbidden": "Only admins can change status of parcels"}, 403
+
+        status_info = self.inspect_status.parse_args()
+        status_received = status_info.get("status")
+        viable_status = ['transit', 'delivered']
+
+        if status_received not in viable_status:
+            return {"Error": "Status can only be changed to 'transit' or 'delivered'."}, 400
+        else:
+            status = status_received
+            change_status = self.parcel.change_status(parcel_id, status)
+
+        if change_status == 204:
+            return {"Success": "The status for parcel number {} was successfully changed".format(parcel_id)}, 200
+        elif change_status == 404:
+            return {"Error": "Parcel not found."}, 404
