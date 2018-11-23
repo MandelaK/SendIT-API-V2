@@ -146,6 +146,8 @@ class ParcelStatus(Resource, Parcels):
             return {"Success": "The status for parcel number {} was successfully changed".format(parcel_id)}, 200
         elif change_status == 404:
             return {"Error": "Parcel not found."}, 404
+        elif change_status == 400:
+            return {"Error": "Status cannot be changed for delivered or cancelled parcels"}, 400
 
 
 class ParcelLocation(Resource, Parcels):
@@ -191,7 +193,6 @@ class CancelParcel(Resource, Parcels):
     @jwt_required
     def put(self, parcel_id):
         """This method will handle requests to cancel any parcel in transit"""
-
         user_info = get_jwt_identity()
         if user_info["is_admin"] is True:
             return {"Forbidden": "Admins cannot cancel parcels"}, 403

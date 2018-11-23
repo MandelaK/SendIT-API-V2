@@ -15,8 +15,6 @@ class Parcels():
     def create_parcel(self, parcel_name, recipient_name, pickup_location,
                       destination, weight):
         """This method handles requests for creating parcel delivery orders"""
-        # import pdb
-        # pdb.set_trace()
 
         user_data = get_jwt_identity()
         self.parcel_name = parcel_name
@@ -216,7 +214,6 @@ class Parcels():
     def cancel_parcel(self, parcel_id):
         """User can only cancel orders they create so long as they are not yet
         'delivered'"""
-
         user_data = get_jwt_identity()
         get_parcel = self.get_parcel_by_id(parcel_id)
 
