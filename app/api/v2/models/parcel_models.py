@@ -159,3 +159,29 @@ class Parcels():
         except (Exception, psycopg2.Error) as error:
             print("Could not get any parcels from database: ", error)
             return error
+
+    def change_status(self, parcel_id, status):
+        """This method handles requests to change the status of an order"""
+
+        parcel = self.get_parcel_by_id(parcel_id)
+
+        if not parcel:
+            return 404
+        elif parcel[9] is "delivered" or parcel[9] == "cancelled":
+            return 400
+        else:
+            change_status = """
+            UPDATE parcels SET status = '{}' WHERE parcel_id = {}""".format(status, parcel_id)
+        try:
+            cursor = self.db.cursor()
+            print("Successfully created cursor. Changing the status of parcel number {} ...".format(
+                parcel_id))
+            cursor.execute(change_status)
+            self.db.commit()
+            count = cursor.rowcount
+            print("Successfully changed the status parcel {}. {} rows affected.".format(
+                parcel_id, count))
+            return 204
+        except (Exception, psycopg2.Error) as error:
+            print("Could not change the status of the order: ", error)
+            return error, 400

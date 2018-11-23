@@ -145,3 +145,64 @@ class TestParcelView(BaseTestClass):
 
         res = self.client.get("/api/v2/parcels", headers=temp_headers)
         self.assertEqual(res.status_code, 404)
+
+    def test_user_change_status(self):
+        """User should not be able to change the status of deliveries"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        status = {"status": "transit"}
+        res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+            status), content_type="application/json", headers=self.headers)
+        result = json.loads(res.data)
+        self.assertEqual(result["Forbidden"],
+                         "Only admins can change status of parcels")
+        self.assertEqual(res.status_code, 403)
+
+    def test_admin_change_status(self):
+        """Admins should be able to change status of parcels that are not delivered or cancelled"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        status = {"status": "transit"}
+        res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+            status), content_type="application/json", headers=self.admin_header)
+        result = json.loads(res.data)
+        self.assertEqual(result["Success"],
+                         "The status for parcel number 1 was successfully changed")
+        self.assertEqual(res.status_code, 200)
+
+    def test_admin_change_invalid_status(self):
+        """Admin should only be able to change status to being on transit or delivered"""
+
+        self.client.post(
+            "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
+            content_type="application/json", headers=self.headers)
+
+        status = {"status": "invalid"}
+        res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+            status), content_type="application/json", headers=self.admin_header)
+        result = json.loads(res.data)
+        self.assertEqual(result["Error"],
+                         "Status can only be changed to 'transit' or 'delivered'.")
+        self.assertEqual(res.status_code, 400)
+
+    def test_admin_change_status_of_nonexistent_parcel(self):
+        """Admin should only change status of parcels that exist"""
+
+        status = {"status": "delivered"}
+        res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+            status), content_type="application/json", headers=self.admin_header)
+        result = json.loads(res.data)
+        self.assertEqual(result["Error"],
+                         "Parcel not found.")
+        self.assertEqual(res.status_code, 404)
+
+    def test_admin_change_status_of_delivered_parcels(self):
+        """Admin should not be able to change status of parcels that have been cancelled
+        or delivered"""
+        pass
