@@ -35,7 +35,12 @@ class TestParcelView(BaseTestClass):
 
     def test_admin_can_create_parcel(self):
         """Admins should not be able to create parcels"""
-        pass
+        res = self.client.post("/api/v2/users/parcels", data=json.dumps(
+            self.generic_parcel), content_type="application/json", headers=self.admin_header)
+
+        result = json.loads(res.data)
+        self.assertEqual(result["Forbidden"], "Admins cannot create parcels")
+        self.assertEqual(res.status_code, 403)
 
     def test_user_change_destination(self):
         """User should be able to change destination of parcels
@@ -105,9 +110,11 @@ class TestParcelView(BaseTestClass):
             "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
             content_type="application/json", headers=self.headers)
 
-        self.client.post("/api/v2/auth/signup", data=json.dumps(self.generic_user),
+        self.client.post("/api/v2/auth/signup",
+                         data=json.dumps(self.generic_user),
                          content_type="application/json")
-        log = self.client.post("/api/v2/auth/login", data=json.dumps(self.generic_user_details),
+        log = self.client.post("/api/v2/auth/login",
+                               data=json.dumps(self.generic_user_details),
                                content_type="application/json")
         logs = json.loads(log.get_data(as_text=True))
         log_token = logs["token"]
@@ -135,9 +142,11 @@ class TestParcelView(BaseTestClass):
             "api/v2/users/parcels", data=(json.dumps(self.generic_parcel)),
             content_type="application/json", headers=self.headers)
 
-        self.client.post("/api/v2/auth/signup", data=json.dumps(self.generic_user),
+        self.client.post("/api/v2/auth/signup",
+                         data=json.dumps(self.generic_user),
                          content_type="application/json")
-        log = self.client.post("/api/v2/auth/login", data=json.dumps(self.generic_user_details),
+        log = self.client.post("/api/v2/auth/login",
+                               data=json.dumps(self.generic_user_details),
                                content_type="application/json")
         logs = json.loads(log.get_data(as_text=True))
         log_token = logs["token"]

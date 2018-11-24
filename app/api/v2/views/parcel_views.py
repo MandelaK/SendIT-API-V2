@@ -28,7 +28,7 @@ class ParcelCreate(Resource, Parcels):
 
         user_data = get_jwt_identity()
         if user_data["is_admin"] is True:
-            return 403
+            return {"Forbidden": "Admins cannot create parcels"}, 403
 
         parcel_details = self.inspect_parcel_details.parse_args()
 
