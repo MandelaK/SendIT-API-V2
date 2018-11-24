@@ -1,5 +1,5 @@
 # SendITAPI-V2
-[![Maintainability](https://api.codeclimate.com/v1/badges/75b6c19f46773ff41381/maintainability)](https://codeclimate.com/github/MandelaK/SendIT-API-V2/maintainabilty) [![codecov](https://codecov.io/gh/MandelaK/SendIT-API-V2/branch/develop/graph/badge.svg)](https://codecov.io/gh/MandelaK/SendIT-API-V2)
+[![Maintainability](https://api.codeclimate.com/v1/badges/75b6c19f46773ff41381/maintainability)](https://codeclimate.com/github/MandelaK/SendIT-API-V2/maintainabilty) [![Coverage Status](https://coveralls.io/repos/github/MandelaK/SendIT-API-V2/badge.svg?branch=develop)](https://coveralls.io/github/MandelaK/SendIT-API-V2?branch=develop)
 [![Build Status](https://travis-ci.com/MandelaK/SendIT-API-V2.svg?branch=develop)](https://travis-ci.com/MandelaK/SendIT-API-V2)
 
 
