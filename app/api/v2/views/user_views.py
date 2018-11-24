@@ -25,7 +25,8 @@ class SignupView(Resource, Users):
             "email", help="Please enter email", required=True)
         self.inspect_user_data.add_argument(
             "password", help="Please enter password", required=True)
-        self.inspect_user_data.add_argument("confirm_password", required=False)
+        self.inspect_user_data.add_argument(
+            "confirm_password", help="Please confrim your password", required=True)
         self.inspect_user_data.add_argument("phone", required=False)
 
     def post(self):
@@ -57,13 +58,9 @@ class SignupView(Resource, Users):
                     "current length": len(phone)}, 400
 
         psw_hash = generate_password_hash(password)
-        saving = self.users.save(
-            user_data["first_name"],
-            user_data["last_name"],
-            user_data["email"],
-            psw_hash,
-            user_data["phone"]
-        )
+
+        saving = self.users.save(first_name, last_name, email, psw_hash, phone)
+
         if saving == 201:
             return {"Success": "Succesfully created account for {}".format(email)}, 201
         elif saving == 409:

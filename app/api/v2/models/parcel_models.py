@@ -139,15 +139,15 @@ class Parcels():
             res = []
 
             for parcel, parcels in enumerate(data):
-                parcel_id, parcel_name, sender_email, recipient_name, destination, pickup_location, current_location, weight, price, status = parcels
+                parcel_id, parcel_name, sender_email, recipient_name, pickup_location, current_location, destination, weight, price, status = parcels
                 structured_response = dict(
                     parcel_id=parcel_id,
                     parcel_name=parcel_name,
                     sender_email=sender_email,
                     recipient_name=recipient_name,
-                    destination=destination,
                     pickup_location=pickup_location,
                     current_location=current_location,
+                    destination=destination,
                     weight=int(weight),
                     price=int(price),
                     status=status)
