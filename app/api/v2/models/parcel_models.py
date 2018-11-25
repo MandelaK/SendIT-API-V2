@@ -2,8 +2,6 @@ import psycopg2
 from db_config import init_db
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from app.api.v2.models.user_models import Users
-
 
 class Parcels():
     """The methods defined in this class represent methods that users
@@ -160,12 +158,11 @@ class Parcels():
 
     def change_status(self, parcel_id, status):
         """This method handles requests to change the status of an order"""
-
         parcel = self.get_parcel_by_id(parcel_id)
 
         if not parcel:
             return 404
-        elif parcel[9] is "delivered" or parcel[9] == "cancelled":
+        elif parcel[9] == "delivered" or parcel[9] == "cancelled":
             return 400
         else:
             change_status = """
