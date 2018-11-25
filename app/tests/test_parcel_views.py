@@ -19,19 +19,67 @@ class TestParcelView(BaseTestClass):
 
     def test_invalid_parcel_name(self):
         """Parcels must have valid names in order to be sent"""
-        pass
+        fake_parcel = {"parcel_name": "   ",
+                       "recipient_name": "Generic Recipient",
+                       "pickup_location": "Generic Pickup",
+                       "destination": "Generic Destination",
+                       "weight": "420"
+                       }
+        res = self.client.post("/api/v2/users/parcels",
+                               data=json.dumps(fake_parcel),
+                               content_type="application/json", headers=self.headers)
+        result = json.loads(res.data)
+        self.assertEqual(result["Error"], "Please enter valid parcel name")
+        self.assertEqual(res.status_code, 400)
 
     def test_invalid_pickup_location(self):
         """Parcels must have valid pickup location"""
-        pass
+        fake_parcel = {"parcel_name": "fake",
+                       "recipient_name": "Generic Recipient",
+                       "pickup_location": "     ",
+                       "destination": "Generic Destination",
+                       "weight": "420"
+                       }
+
+        res = self.client.post("/api/v2/users/parcels",
+                               data=json.dumps(fake_parcel),
+                               content_type="application/json", headers=self.headers)
+        result = json.loads(res.data)
+        self.assertEqual(result["Error"], "Please enter valid pickup location")
+        self.assertEqual(res.status_code, 400)
 
     def test_invalid_destination(self):
         """Parcels must have valid destination"""
-        pass
+        fake_parcel = {"parcel_name": "fake",
+                       "recipient_name": "Generic Recipient",
+                       "pickup_location": "Over here",
+                       "destination": "   ",
+                       "weight": "420"
+                       }
+
+        res = self.client.post("/api/v2/users/parcels",
+                               data=json.dumps(fake_parcel),
+                               content_type="application/json", headers=self.headers)
+        result = json.loads(res.data)
+        self.assertEqual(result["Error"], "Please enter valid destination")
+        self.assertEqual(res.status_code, 400)
 
     def test_valid_weight(self):
         """Parcels must have valid weight"""
-        pass
+        fake_parcel = {"parcel_name": "fake",
+                       "recipient_name": "Generic Recipient",
+                       "pickup_location": "Over here",
+                       "destination": "Over there",
+                       "weight": "so fake"
+                       }
+
+        res = self.client.post("/api/v2/users/parcels",
+                               data=json.dumps(fake_parcel),
+                               content_type="application/json", headers=self.headers)
+        result = json.loads(res.data)
+        self.assertEqual(
+            result["Error"], "Please enter postive weight in integers")
+        self.assertEqual(res.status_code, 400)
 
     def test_admin_can_create_parcel(self):
         """Admins should not be able to create parcels"""
@@ -78,7 +126,7 @@ class TestParcelView(BaseTestClass):
         that don't exist"""
 
         des = {"destination": "Nairoberry"}
-        res = self.client.put("/api/v2/parcels/1/destination",
+        res = self.client.put("/api/v2/parcels/5/destination",
                               data=json.dumps(des), content_type="application/json",
                               headers=self.headers)
         result = json.loads(res.data)
@@ -204,7 +252,7 @@ class TestParcelView(BaseTestClass):
         """Admin should only change status of parcels that exist"""
 
         status = {"status": "delivered"}
-        res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+        res = self.client.put("/api/v2/parcels/5/status", data=json.dumps(
             status), content_type="application/json", headers=self.admin_header)
         result = json.loads(res.data)
         self.assertEqual(result["Error"],
@@ -214,7 +262,17 @@ class TestParcelView(BaseTestClass):
     def test_admin_change_status_of_delivered_parcels(self):
         """Admin should not be able to change status of parcels that have been cancelled
         or delivered"""
-        pass
+
+        status = {"status": "delivered"}
+        self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+            status), content_type="application/json", headers=self.admin_header)
+        new_status = {"status": "transit"}
+        res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
+            new_status), content_type="application/json", headers=self.admin_header)
+        result = json.loads(res.data)
+        self.assertEqual(result["Error"],
+                         "Status cannot be changed for delivered or cancelled parcels")
+        self.assertEqual(res.status_code, 400)
 
     def test_user_can_change_location(self):
         """Users should not be able to change location of parcels"""
@@ -254,7 +312,7 @@ class TestParcelView(BaseTestClass):
         """Admin should not be able to change location of parcels that don't exist"""
 
         location = {"current_location": "Nairoberry"}
-        res = self.client.put("/api/v2/parcels/1/presentLocation", data=json.dumps(
+        res = self.client.put("/api/v2/parcels/5/presentLocation", data=json.dumps(
             location), content_type="application/json", headers=self.admin_header)
         result = json.loads(res.data)
 
@@ -347,7 +405,7 @@ class TestParcelView(BaseTestClass):
     def test_user_can_cancel_nonexistent_parcels(self):
         """User should not be able to cancel parcels that don't exist"""
 
-        res = self.client.put("/api/v2/parcels/1/cancel",
+        res = self.client.put("/api/v2/parcels/5/cancel",
                               headers=self.headers)
         result = json.loads(res.data)
 

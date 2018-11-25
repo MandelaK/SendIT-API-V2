@@ -13,7 +13,7 @@ class TestUserModels(BaseTestClass):
             "/api/v2/auth/signup", data=json.dumps(self.generic_user), content_type="application/json")
         result = json.loads(res.data)
         self.assertEqual(
-            result["Success"], "Succesfully created account for testing@gmail.com")
+            result["Success"], "Succesfully created account for generic@user.com")
         self.assertEqual(res.status_code, 201)
 
     def test_duplicate_signup_attempt(self):
@@ -56,7 +56,7 @@ class TestUserModels(BaseTestClass):
             content_type="application/json")
         result = json.loads(res.data)
         self.assertEqual(result["Success"],
-                         "You are logged in as testing@gmail.com.")
+                         "You are logged in as generic@user.com.")
         self.assertEqual(res.status_code, 201)
 
     def test_wrong_password_login(self):
