@@ -4,9 +4,9 @@ from app.tests import BaseTestClass
 
 
 class TestParcelView(BaseTestClass):
-  """"""
+  """This class contains all tests regarding parcels"""
 
-  def test_create_order(self):
+  def test__create_order(self):
     """This will test POST /parcels"""
 
     res = self.client.post(
@@ -434,3 +434,41 @@ class TestParcelView(BaseTestClass):
     self.assertEqual(result["Error"],
                      "You can only cancel parcels you created")
     self.assertEqual(res.status_code, 401)
+
+  def test_admin_can_get_parcel_by_id(self):
+    """Admins should be able to get any parcel by their ID if the parcels exist"""
+
+    res = self.client.get("api/v2/parcels/1", headers=self.admin_header)
+    # result = json.loads(res.json)
+
+    # self.assertEqual(result["Parcel 1"], )
+    self.assertEqual(res.status_code, 200)
+
+  def test_get_nonexistent_parcel_by_id(self):
+    """Admins and users should be notified when they try to get non-existent parcels"""
+
+    res = self.client.get(
+        "api/v2/parcels/44", content_type="application/json", headers=self.admin_header)
+    result = json.loads(res.data)
+
+    self.assertEqual(result["Error"], "Parcel 44 does not exist")
+    self.assertEqual(res.status_code, 404)
+
+  def test_user_get_parcel_that_is_not_theirs_by_id(self):
+    """Users should not be able to get parcels that are not theirs by ID."""
+
+    self.client.post("/api/v2/auth/signup", data=json.dumps(self.generic_user),
+                     content_type="application/json")
+    log = self.client.post("/api/v2/auth/login", data=json.dumps(self.generic_user_details),
+                           content_type="application/json")
+    logs = json.loads(log.get_data(as_text=True))
+    log_token = logs["token"]
+    temp_headers = {"AUTHORIZATION": "Bearer " + log_token}
+
+    res = self.client.get(
+        "api/v2/parcels/1", content_type="application/json", headers=temp_headers)
+    result = json.loads(res.data)
+
+    self.assertEqual(
+        result["Error"], "You can only view your own parcels. To view them, search for all your parcels and then use the parcel_id provided by that request in this link.")
+    self.assertEqual(res.status_code, 403)
