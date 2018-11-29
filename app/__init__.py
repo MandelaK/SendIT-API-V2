@@ -3,7 +3,7 @@ from flask import Flask
 from flask_jwt_extended import JWTManager
 # we import created blueprints to register them
 from .api.v2 import version2
-from db_config import create_tables, create_admin, delete_admin
+from db_config import create_tables, create_admin
 from instance.config import app_config
 
 jwt = JWTManager()
@@ -19,7 +19,7 @@ def create_app(config_name):
     jwt.init_app(app)
     # register more blueprints in a similar manner
     create_tables()
-    delete_admin()
+    # delete_admin()
     create_admin()
 
     return app
