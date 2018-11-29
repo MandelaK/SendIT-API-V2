@@ -82,4 +82,6 @@ Version 1 of this API is found here - https://github.com/MandelaK/SendIT-API
 
 The repository for the UI can be found here - https://github.com/MandelaK/SendIT
 
+You can find documentation of this endpoint here - https://documenter.getpostman.com/view/5782976/RzfcNCAi
+
 
