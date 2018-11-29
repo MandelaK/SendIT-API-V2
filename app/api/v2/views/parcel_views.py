@@ -92,8 +92,6 @@ class ParcelDestination(Resource, Parcels):
             return {"Error": "You can only change destination of parcels that are pending"}, 400
         elif update_destination == 401:
             return {"Unauthorized": "You can only update destination of your own parcels"}, 401
-        else:
-            return {"Something went wrong": update_destination}
 
 
 class ParcelView(Resource, Parcels):
@@ -207,3 +205,37 @@ class CancelParcel(Resource, Parcels):
             return {"Error": "You can only cancel parcels you created"}, 401
         elif send_request == 400:
             return {"Error": "You can only cancel parcels in transit"}, 400
+
+
+class SpecificParcel(Resource, Parcels):
+    """This class contains methods that will handle requests for getting parcel by ID"""
+
+    @jwt_required
+    def get(self, parcel_id):
+        """Admins should be able to get any parcel by its ID
+        Users should only get their own parcel by ID"""
+
+        user_data = get_jwt_identity()
+
+        search = self.get_parcel_by_id(parcel_id)
+
+        if not search:
+            return {"Error": "Parcel {} does not exist".format(parcel_id)}, 404
+        else:
+            if user_data["is_admin"] is True or search[2] == user_data["email"]:
+                for parc, parcels in enumerate([search]):
+                    parcel_id, parcel_name, sender_email, recipient_name, pickup_location, current_location, destination, weight, price, status = parcels
+                    structured_response = dict(
+                        parcel_id=parcel_id,
+                        parcel_name=parcel_name,
+                        sender_email=sender_email,
+                        recipient_name=recipient_name,
+                        pickup_location=pickup_location,
+                        current_location=current_location,
+                        destination=destination,
+                        weight=int(weight),
+                        price=int(price),
+                        status=status)
+                return {"Found parcel {}".format(parcel_id): structured_response}, 200
+            elif search[2] != user_data["email"]:
+                return {"Error": "You can only view your own parcels. To view them, search for all your parcels and then use the parcel_id provided by that request in this link."}, 403
