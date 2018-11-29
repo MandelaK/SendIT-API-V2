@@ -77,23 +77,28 @@ def create_admin():
     conn = init_db()
     cursor = conn.cursor()
 
+    del_admin = """DELETE FROM users where email = 'admin@admin.admin';
+    """
+
     admin_pass = {"password": generate_password_hash("adminpassword")}
     create_admin = """
     INSERT INTO users (first_name, last_name, email, password, phone, is_admin)
     VALUES ('Admin', 'Major', 'admin@admin.admin', %(password)s, 1111111111, 't')
     """
+    cursor.execute(del_admin)
+    print("Deleting admin")
     cursor.execute(create_admin, admin_pass)
     print("Creating admin")
     conn.commit()
 
 
-def delete_admin():
-    """We delete admin before creating our app so that there can only always be only
-    one admin"""
+# def delete_admin():
+#     """We delete admin before creating our app so that there can only always be only
+#     one admin"""
 
-    conn = init_db()
-    cursor = conn.cursor()
-    delete_ad = """DELETE FROM users WHERE email = 'admin@admin.admin'
-    """
-    cursor.execute(delete_ad)
-    conn.commit()
+#     conn = init_db()
+#     cursor = conn.cursor()
+#     delete_ad = """DELETE FROM users WHERE email = 'admin@admin.admin'
+#     """
+#     cursor.execute(delete_ad)
+#     conn.commit()
