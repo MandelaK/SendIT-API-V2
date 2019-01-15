@@ -87,7 +87,7 @@ class TestParcelView(BaseTestClass):
         self.generic_parcel), content_type="application/json", headers=self.admin_header)
 
     result = json.loads(res.data)
-    self.assertEqual(result["Forbidden"], "Admins cannot create parcels")
+    self.assertEqual(result["Error"], "Admins cannot create parcels. Forbidden!")
     self.assertEqual(res.status_code, 403)
 
   def test_user_change_destination(self):
@@ -146,8 +146,8 @@ class TestParcelView(BaseTestClass):
                           data=json.dumps(des), content_type="application/json",
                           headers=self.admin_header)
     result = json.loads(res.data)
-    self.assertEqual(result["Forbidden"],
-                     "Admins cannot change destinaion of parcels")
+    self.assertEqual(result["Error"],
+                     "Admins cannot change destinaion of parcels. Forbidden!")
     self.assertEqual(res.status_code, 403)
 
   def test_user_cannot_change_destination_of_parcel_they_did_not_create(self):
@@ -172,7 +172,7 @@ class TestParcelView(BaseTestClass):
         update_destination), content_type="application/json", headers=temp_headers)
     result = json.loads(res.data)
     self.assertEqual(
-        result["Unauthorized"], "You can only update destination of your own parcels")
+        result["Error"], "You can only update destination of your own parcels. Unauthorized!")
     self.assertEqual(res.status_code, 401)
 
   def test_user_can_get_their_parcel(self):
@@ -214,8 +214,8 @@ class TestParcelView(BaseTestClass):
     res = self.client.put("/api/v2/parcels/1/status", data=json.dumps(
         status), content_type="application/json", headers=self.headers)
     result = json.loads(res.data)
-    self.assertEqual(result["Forbidden"],
-                     "Only admins can change status of parcels")
+    self.assertEqual(result["Error"],
+                     "Only admins can change status of parcels. Forbidden!")
     self.assertEqual(res.status_code, 403)
 
   def test_admin_change_status(self):
@@ -285,8 +285,8 @@ class TestParcelView(BaseTestClass):
     res = self.client.put("/api/v2/parcels/1/presentLocation", data=json.dumps(
         location), content_type="application/json", headers=self.headers)
     result = json.loads(res.data)
-    self.assertEqual(result["Forbidden"],
-                     "Only admins can update the present location of a parcel.")
+    self.assertEqual(result["Error"],
+                     "Only admins can update the present location of a parcel. Forbidden!")
     self.assertEqual(res.status_code, 403)
 
   def test_admin_can_change_current_location(self):
@@ -366,8 +366,8 @@ class TestParcelView(BaseTestClass):
                           headers=self.admin_header)
     result = json.loads(res.data)
 
-    self.assertEqual(result["Forbidden"],
-                     "Admins cannot cancel parcels")
+    self.assertEqual(result["Error"],
+                     "Admins cannot cancel parcels. Forbidden!")
     self.assertEqual(res.status_code, 403)
 
   def test_user_can_cancel_pending_parcel(self):
