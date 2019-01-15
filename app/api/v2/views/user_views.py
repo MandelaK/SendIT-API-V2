@@ -109,5 +109,13 @@ class LoginView(Resource, Users):
             token_expires = datetime.timedelta(minutes=600)
             token = create_access_token(
                 identity=user_dict, expires_delta=token_expires)
+            if is_admin:
+                return {"Success": "You are logged in as admin.",
+                        "email": email,
+                        "token": token,
+                        "admin": True}
+
             return {"Success": "You are logged in as {}.".format(email),
-                    "token": token}, 201
+                    "token": token,
+                    "email": email,
+                    "admin": False}, 201

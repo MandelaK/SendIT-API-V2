@@ -28,7 +28,7 @@ class ParcelCreate(Resource, Parcels):
 
         user_data = get_jwt_identity()
         if user_data["is_admin"] is True:
-            return {"Forbidden": "Admins cannot create parcels"}, 403
+            return {"Error": "Admins cannot create parcels. Forbidden!"}, 403
 
         parcel_details = self.inspect_parcel_details.parse_args()
 
@@ -55,7 +55,7 @@ class ParcelCreate(Resource, Parcels):
         if save_parcel == 201:
             return {"Success": "Your parcel order has been saved"}, 201
         else:
-            return {"Something went wrong": save_parcel}, 400
+            return {"Error": save_parcel}, 400
 
 
 class ParcelDestination(Resource, Parcels):
@@ -74,7 +74,7 @@ class ParcelDestination(Resource, Parcels):
         parcel destination."""
         user_data = get_jwt_identity()
         if user_data["is_admin"] is True:
-            return {"Forbidden": "Admins cannot change destinaion of parcels"}, 403
+            return {"Error": "Admins cannot change destinaion of parcels. Forbidden!"}, 403
 
         destination_requested = self.inspect_destination.parse_args()
         destination = destination_requested["destination"]
@@ -91,7 +91,7 @@ class ParcelDestination(Resource, Parcels):
         elif update_destination == 400:
             return {"Error": "You can only change destination of parcels that are pending"}, 400
         elif update_destination == 401:
-            return {"Unauthorized": "You can only update destination of your own parcels"}, 401
+            return {"Error": "You can only update destination of your own parcels. Unauthorized!"}, 401
 
 
 class ParcelView(Resource, Parcels):
@@ -108,7 +108,7 @@ class ParcelView(Resource, Parcels):
         if parcels == 404:
             return {"Error": "You have no parcels made"}, 404
         else:
-            return {"Here are the parcels": parcels}, 200
+            return {"Success": "Here are your parcels", "parcels": parcels}, 200
 
 
 class ParcelStatus(Resource, Parcels):
@@ -128,7 +128,7 @@ class ParcelStatus(Resource, Parcels):
 
         user_info = get_jwt_identity()
         if user_info["is_admin"] is False:
-            return {"Forbidden": "Only admins can change status of parcels"}, 403
+            return {"Error": "Only admins can change status of parcels. Forbidden!"}, 403
 
         status_info = self.inspect_status.parse_args()
         status_received = status_info.get("status")
@@ -163,7 +163,7 @@ class ParcelLocation(Resource, Parcels):
 
         user_data = get_jwt_identity()
         if user_data["is_admin"] is False:
-            return {"Forbidden": "Only admins can update the present location of a parcel."}, 403
+            return {"Error": "Only admins can update the present location of a parcel. Forbidden!"}, 403
 
         location_updated = self.inspect_location.parse_args()
         current_location = location_updated["current_location"]
@@ -193,7 +193,7 @@ class CancelParcel(Resource, Parcels):
         """This method will handle requests to cancel any parcel in transit"""
         user_info = get_jwt_identity()
         if user_info["is_admin"] is True:
-            return {"Forbidden": "Admins cannot cancel parcels"}, 403
+            return {"Error": "Admins cannot cancel parcels. Forbidden!"}, 403
 
         send_request = self.parcel.cancel_parcel(parcel_id)
 
@@ -236,6 +236,7 @@ class SpecificParcel(Resource, Parcels):
                         weight=int(weight),
                         price=int(price),
                         status=status)
-                return {"Found parcel {}".format(parcel_id): structured_response}, 200
+                return {"Success": "Found parcel {}".format(parcel_id),
+                        "Parcel": structured_response}, 200
             elif search[2] != user_data["email"]:
                 return {"Error": "You can only view your own parcels. To view them, search for all your parcels and then use the parcel_id provided by that request in this link."}, 403
